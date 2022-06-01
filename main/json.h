@@ -20,6 +20,7 @@
 
 void Json_parse_void(String Data, float *Caliration_Para);
 String Json_Create_String(uint8_t request, float *json_save);
+String Json_CreateAnalog_String(uint8_t request, uint16 *JsonSave);
 
 /* ---------------------------------------------------------------------------------------------- */
 /*                                            Function                                            */
@@ -71,21 +72,7 @@ String Json_Create_String(uint8_t request, float *json_save)
     StaticJsonDocument <256> doc;
     deserializeJson(doc, jsondata);
 
-    if (request == JSON_ANALOG_byClient)
-    {
-        doc["TEMP_vol"] = json_save[TEMP];
-        doc["SAL_vol"]  = json_save[SAL];
-        doc["PH_vol"]   = json_save[PH];
-        doc["NH4_vol"]   = json_save[NH4];
-        doc["OXI_vol"]  = json_save[DO];
-        doc["clientID"]     = 0;
-        doc["task"]         = 0;
-        serializeJson(doc, output);
-        #if DEBUG_JSON
-            SHOWLN("json created: " + output);
-        #endif
-    }
-    else if (request == JSON_CALIB_byClient)
+    if (request == JSON_CALIB_byClient)
     {
         doc["config"]   = EEPROM.read(EEPROM_ADDRESS);
         doc["SAL"][0]   = json_save[SAL_Intercept];
@@ -116,24 +103,48 @@ String Json_Create_String(uint8_t request, float *json_save)
         #if DEBUG_JSON
             SHOWLN("json created: " + output);
         #endif
-    } 
+    }
+    return output;
+}
+
+String Json_CreateAnalog_String(uint8_t request, uint16 *JsonSave)
+{
+    String output;
+    char jsondata[1];
+    StaticJsonDocument <256> doc;
+    deserializeJson(doc, jsondata);
+
+    if (request == JSON_ANALOG_byClient)
+    {
+        doc["TEMP_vol"] = (JsonSave[TEMP*3+1] + JsonSave[TEMP*3+2] + JsonSave[TEMP*3+3]) / NumberTimes_ReadAnalog;
+        doc["SAL_vol"]  = (JsonSave[SAL*3+1] + JsonSave[SAL*3+2] + JsonSave[SAL*3+3]) / NumberTimes_ReadAnalog;
+        doc["PH_vol"]   = (JsonSave[PH*3+1] + JsonSave[PH*3+2] + JsonSave[PH*3+3]) / NumberTimes_ReadAnalog;
+        doc["NH4_vol"]  = (JsonSave[NH4*3+1] + JsonSave[NH4*3+2] + JsonSave[NH4*3+3]) / NumberTimes_ReadAnalog;
+        doc["OXI_vol"]  = (JsonSave[DO*3+1] + JsonSave[DO*3+2] + JsonSave[DO*3+3]) / NumberTimes_ReadAnalog;
+        doc["clientID"]     = 0;
+        doc["task"]         = 0;
+        serializeJson(doc, output);
+        #if DEBUG_JSON
+            SHOWLN("json created: " + output);
+        #endif
+    }
     else if(request == JSON_ANAOG_DETAIL_byClient)
     {
-        doc["TEMP"][0]  = json_save[0];
-        doc["TEMP"][1]  = json_save[0];
-        doc["TEMP"][2]  = json_save[0];
-        doc["SAL"][0]   = json_save[0];
-        doc["SAL"][1]   = json_save[0];
-        doc["SAL"][2]   = json_save[0];
-        doc["PH"][0]    = json_save[0];
-        doc["PH"][1]    = json_save[0];
-        doc["PH"][2]    = json_save[0];
-        doc["NH4"][0]   = json_save[0];
-        doc["NH4"][1]   = json_save[0];
-        doc["NH4"][2]   = json_save[0];
-        doc["OXI"][0]   = json_save[0];
-        doc["OXI"][1]   = json_save[0];
-        doc["OXI"][2]   = json_save[0];
+        doc["TEMP"][0]  = JsonSave[1];
+        doc["TEMP"][1]  = JsonSave[2];
+        doc["TEMP"][2]  = JsonSave[3];
+        doc["SAL"][0]   = JsonSave[4];
+        doc["SAL"][1]   = JsonSave[5];
+        doc["SAL"][2]   = JsonSave[6];
+        doc["PH"][0]    = JsonSave[7];
+        doc["PH"][1]    = JsonSave[8];
+        doc["PH"][2]    = JsonSave[9];
+        doc["NH4"][0]   = JsonSave[10];
+        doc["NH4"][1]   = JsonSave[11];
+        doc["NH4"][2]   = JsonSave[12];
+        doc["OXI"][0]   = JsonSave[13];
+        doc["OXI"][1]   = JsonSave[14];
+        doc["OXI"][2]   = JsonSave[15];
         doc["clientID"]     = 0;
         doc["task"]         = 0;
         serializeJson(doc, output);

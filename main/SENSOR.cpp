@@ -3,7 +3,7 @@
 static uint8    Relay_Sensor[6];
 static uint8    Analog_Sensor[6];
 float    Calibration[8];
-uint16   Analog_Read[3];
+uint16   Analog_Read[15];
 float    Value_Sensor[6];
 boolean  ON   =   HIGH;
 boolean  OFF  =   LOW;
@@ -216,14 +216,14 @@ void Sensor_ReadValue_void(uint8 IDSensor, uint16 start_time, uint16 warmup_time
     if (TimeLine == start_time)
         Board_PowerONSensor_void(Relay_Sensor[IDSensor], IDSensor);
     else if (TimeLine == start_time + warmup_time + 2)
-        Analog_Read[1] = Sensor_ReadAnalog_float(Analog_Sensor[IDSensor]);
+        Analog_Read[IDSensor*3+1] = Sensor_ReadAnalog_float(Analog_Sensor[IDSensor]);
     else if (TimeLine == start_time + warmup_time + 4)
-        Analog_Read[2] = Sensor_ReadAnalog_float(Analog_Sensor[IDSensor]);
+        Analog_Read[IDSensor*3+2] = Sensor_ReadAnalog_float(Analog_Sensor[IDSensor]);
     else if (TimeLine == start_time + warmup_time + 6)
     {
-        Analog_Read[3] = Sensor_ReadAnalog_float(Analog_Sensor[IDSensor]);
-        Analog_Read[0] = (Analog_Read[1] + Analog_Read[2] + Analog_Read[3]) / NumberTimes_ReadAnalog;
-        Value_Sensor[IDSensor]  = Sensor_IDValue_float(IDSensor, Analog_Read[0]);
+        Analog_Read[IDSensor*3+3] = Sensor_ReadAnalog_float(Analog_Sensor[IDSensor]);
+        uint16 AnalogAVR = (Analog_Read[1] + Analog_Read[2] + Analog_Read[3]) / NumberTimes_ReadAnalog;
+        Value_Sensor[IDSensor]  = Sensor_IDValue_float(IDSensor, AnalogAVR);
         Board_PowerOFFSensor_void(Relay_Sensor[IDSensor], IDSensor);
     }
 }

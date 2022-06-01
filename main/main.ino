@@ -47,19 +47,19 @@ void loop()
 
     if(FlagState[ESPD1_1E])
     {
-        Json_Parse_void(Data1);
+        Json_Parse_void(Data1, RESETBOARD);
         CharArr_Clear(Data1, 254);
         FlagState[ESPD1_1E] = false;
     }
     else if(FlagState[ESPD1_2E])
     {
-        Json_Parse_void(Data2);
+        Json_Parse_void(Data2, RESETBOARD);
         CharArr_Clear(Data2, 254);
         FlagState[ESPD1_2E] = false;
     }
     else if(FlagState[ESPD1_3E])
     {
-        Json_Parse_void(Data3);
+        Json_Parse_void(Data3, RESETBOARD);
         CharArr_Clear(Data3, 254);
         FlagState[ESPD1_3E] = false;
     }
@@ -73,14 +73,16 @@ void loop()
     if(FlagState[JsonVal])
     {
         // add code
-        // ESPD1MINI.print();
+        String JsonValueString = Json_Create_String(JSON_VALUE_SENSOR_byClient, Value_Sensor);
+        ESPD1MINI.println(JsonValueString);
         FlagState[JsonVal] = false;
     }
 
     if(FlagState[JsonAna])
     {
         // add code
-        // ESPD1MINI.print();
+        String JsonAnalogString = Json_CreateAnalog_String(JSON_ANALOG_byClient, Analog_Read);
+        ESPD1MINI.print(JsonAnalogString);
         FlagState[JsonAna] = false;
     }
 }

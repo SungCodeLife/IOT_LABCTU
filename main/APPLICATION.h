@@ -10,7 +10,7 @@ uint16 TimeLine = 0;
 uint16 RTC_Time[8];
 extern float    Value_Sensor[6];
 extern float    Calibration[8];
-extern uint16   Analog_Read[3];
+extern uint16   Analog_Read[15];
 
 // prototype function
 void WDT_ON();
@@ -18,7 +18,7 @@ void WDT_OFF();
 void TIMER1_Init();
 void Calibration_Init_void();
 void DataLoger2SDCard(uint8);
-void Json_Parse_void(String DataParse);
+void Json_Parse_void(char DataParse[], uint8 FlagReset);
 void TIM1_POLL_void(uint8, uint8, uint8, uint8, uint8);
 
 // application function
@@ -59,27 +59,27 @@ void TIMER1_Init()
 
 void DataLoger2SDCard(uint8 WhData)
 {
-   String  TimeSave   = RTC_DS3231_ReadTime_String(RTC_Time);
-   String  DirFolder  = "DATALOG/YEAR" + (String)RTC_Time[year] + "/MONTH_" + (String)RTC_Time[month];
-   String  SaveFile   = DirFolder + "/DATE_" + (String)RTC_Time[date] + ".txt";
-   String  Title      = "Temperature,Salinity,PH,NH4,DO\r\n";
-   String  comma      = ",";
-   String  DataSave   = Value_Sensor[TEMP] + comma + Value_Sensor[SAL] + comma + Value_Sensor[PH] + comma + Value_Sensor[NH4] + comma + Value_Sensor[DO] + comma + TimeSave + DOWLN;
-   #if DEBUG_APP
-   SHOWLN("DATALOGER SAVE AT: " + SaveFile);
-   #endif
+    String  TimeSave   = RTC_DS3231_ReadTime_String(RTC_Time);
+    String  DirFolder  = "DATALOG/YEAR" + (String)RTC_Time[year] + "/MONTH_" + (String)RTC_Time[month];
+    String  SaveFile   = DirFolder + "/DATE_" + (String)RTC_Time[date] + ".txt";
+    String  Title      = "Temperature,Salinity,PH,NH4,DO\r\n";
+    String  comma      = ",";
+    String  DataSave   = Value_Sensor[TEMP] + comma + Value_Sensor[SAL] + comma + Value_Sensor[PH] + comma + Value_Sensor[NH4] + comma + Value_Sensor[DO] + comma + TimeSave + DOWLN;
+    #if DEBUG_APP
+    SHOWLN("DATALOGER SAVE AT: " + SaveFile);
+    #endif
 
-   String DataSave2SD = "";
-   if (WhData == NEWDAY)
-       DataSave2SD = Title;
-   if (WhData == NORMALDAY)
-       DataSave2SD = DataSave;
-   if (!SD.exists(DirFolder))
-       SDCARD_CreateFolder_bool(DirFolder);
-   SDCARD_WriteFile_String(SaveFile, DataSave2SD);
+    String DataSave2SD = "";
+    if (WhData == NEWDAY)
+        DataSave2SD = Title;
+    if (WhData == NORMALDAY)
+        DataSave2SD = DataSave;
+    if (!SD.exists(DirFolder))
+        SDCARD_CreateFolder_bool(DirFolder);
+    SDCARD_WriteFile_String(SaveFile, DataSave2SD);
 }
 
-void Json_Parse_void(char DataParse[])
+void Json_Parse_void(char DataParse[], uint8 FlagReset)
 {
     String output;
     StaticJsonDocument <256> doc;
@@ -97,9 +97,9 @@ void Json_Parse_void(char DataParse[])
         #endif
         ESPD1MINI.print(DataRead);       
     }
-    if(JsonTask == JSON_CALIB_ByServer)
+    else if(JsonTask == JSON_CALIB_ByServer)
     {
-        uint8 NumCfg             = doc["config"];
+        uint8 NumCfg               = doc["config"];
         Calibration[SAL_Intercept] = doc["SAL"][0];
         Calibration[SAL_Slope]     = doc["SAL"][1];
         Calibration[PH_Intercept]  = doc["PH"][0];
@@ -108,6 +108,17 @@ void Json_Parse_void(char DataParse[])
         Calibration[NH4_m]         = doc["NH4"][1];
         Calibration[DO_Intercept]  = doc["OXI"][0];
         Calibration[DO_Slope]      = doc["OXI"][1];
+
+        if(FlagReset == RESETBOARD)
+        {
+            TIMSK1 &= ~(1 << TOIE1);
+            EEPROM_Write_void(EEPROM_ADDRESS, NumCfg);
+            serializeJson(doc, output);
+            SDCARD_SaveConfigFile_uint8(NumCfg, output);
+            SHOWLN(F("Reset to apply new Calibration (8s)...."));
+            delay(10000);
+        }
+
     }
     #if DEBUG_APP
         serializeJson(doc, output);
@@ -124,7 +135,7 @@ void Calibration_Init_void()
     for(int i = 0; i<= 255; i++)
         CData[i] =  Data[i];
     
-    Json_Parse_void(CData);
+    Json_Parse_void(CData, NONE);
     if (conf <= 5)
         SHOWLN("(Calibration now) SAL_Intercept: " + (String)Calibration[SAL_Intercept] + " SAL_Slope:" + (String)Calibration[SAL_Slope] + " PH_Intercept:" + (String)Calibration[PH_Intercept] + " PH_Slope:" + (String)Calibration[PH_Slope] + " Eo:" + (String)Calibration[NH4_Eo] + " m:" + (String)Calibration[NH4_m] + " DO_Intercept:" + (String)Calibration[DO_Intercept] + " DO_Slope:" + (String)Calibration[DO_Slope]);
     else

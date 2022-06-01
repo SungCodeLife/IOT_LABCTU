@@ -86,22 +86,25 @@
 #define NORMALDAY         252                                          // Dataloger at normal day
 #define NEWBOARD          251                                          // 99 is new board ---------------------------------
 #define OLDBOARD          250                                          // 11 is old board ---------------------------------
+#define RESETBOARD        230
+#define NONE              0
 
-#define JSON_ANAOG_DETAIL_byClient  249                                          // json client
-#define JSON_CALIB_byClient         249                                          // json client
+#define JSON_ANAOG_DETAIL_byClient  244                                          // json client
+#define JSON_CALIB_byClient         240                                          // json client
 #define JSON_ANALOG_byClient        248                                          // json client
 #define JSON_VALUE_SENSOR_byClient  247                                          // json client
 #define JSON_TASK_ByServer          246                                          // json server
 #define JSON_NUMERIC_ByServer       245                                          // json server
-#define JSON_CALIB_ByServer         244                                          // json server
+#define JSON_CALIB_ByServer         249                                          // json server
+#define JSON_CALIB_Get              243                                          // json server
 
 #define DEBUG_RTC         false
-#define DEBUG_SENSOR      false                                         // debug for SHOW value sensor
+#define DEBUG_SENSOR      true                                         // debug for SHOW value sensor
 #define DEBUG_LOG         true                                         // debug for SHOW Serial
 #define DEBUG_ALL         true
 #define DEBUG_EEP         false
 #define DEBUG_JSON        false
-#define DEBUG_SD          false
+#define DEBUG_SD          true
 #define DEBUG_APP         false
 #define SHOW              if(DEBUG_LOG) Serial.print
 #define SHOWLN            if(DEBUG_LOG) Serial.println
